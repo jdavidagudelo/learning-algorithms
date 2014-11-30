@@ -62,59 +62,38 @@ Theta2_grad = zeros(size(Theta2));
 %               and Theta2_grad from Part 2.
 %
 
-%recoding variables
-%identity matrix, so the i-th row will correspond to the
-%i-th class
-I = eye(num_labels);
-Y = zeros(m, num_labels);
+
+
+
+
+
+X = [ones(m, 1) X];
+
 for i=1:m
-%the current row of Y corresponds to the value of y in the training set
-  Y(i, :)= I(y(i), :);
-end
+    a1 = X(i,:)';
+    z2 = Theta1 * a1;
+    a2 = [1; sigmoid(z2)];
+    z3 = Theta2 * a2;
+    a3 = sigmoid(z3);
+    h = a3;
 
+    yVec = (1:num_labels)' == y(i);
+    J = J + sum(-yVec .* log(h) - (1 - yVec) .* log(1 - h));
 
-%A1 the input plus the ones for a0
-A1 = [ones(m, 1) X];
-%output of the second layer
-Z2 = A1 * Theta1';
-%activation of the second layer including ones
-A2 = [ones(size(Z2, 1), 1) sigmoid(Z2)];
-Z3 = A2*Theta2';
-%result
-H = A3 = sigmoid(Z3);
+    delta3 = a3 - yVec;
+    delta2 = Theta2' * delta3 .* (a2 .* (1 - a2));
+    Theta2_grad = Theta2_grad + delta3 * a2';
+    Theta1_grad = Theta1_grad + delta2(2:end) * a1';
+end;
 
-
-penalty = (lambda/(2*m))*(sum(sum(Theta1(:, 2:end).^2, 2)) + sum(sum(Theta2(:,2:end).^2, 2)));
-
-J = (1/m)*sum(sum((-Y).*log(H) - (1-Y).*log(1-H), 2));
-J = J + penalty;
-
-Sigma3 = A3 - Y;
-Sigma2 = (Sigma3*Theta2 .* sigmoidGradient([ones(size(Z2, 1), 1) Z2]))(:, 2:end);
-
-
-Delta_1 = Sigma2'*A1;
-Delta_2 = Sigma3'*A2;
-
-
-Theta1_grad = Delta_1./m + (lambda/m)*[zeros(size(Theta1,1), 1) Theta1(:, 2:end)];
-Theta2_grad = Delta_2./m + (lambda/m)*[zeros(size(Theta2,1), 1) Theta2(:, 2:end)];
-
-grad = [Theta1_grad(:) ; Theta2_grad(:)];
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+J = J / m;
+Theta1_grad = Theta1_grad / m;
+Theta2_grad = Theta2_grad / m;
+ t1 = Theta1(:, 2:end);
+ t2 = Theta2(:, 2:end);
+J = J + (lambda / (2 * m)) * (sum(t1(:).^2) + sum(t2(:).^2));
+Theta1_grad = Theta1_grad + (lambda / m) * [zeros(size(Theta1, 1), 1) Theta1(:,2:end)];
+Theta2_grad = Theta2_grad + (lambda / m) * [zeros(size(Theta2, 1), 1) Theta2(:,2:end)];
 
 % -------------------------------------------------------------
 
@@ -125,3 +104,5 @@ grad = [Theta1_grad(:) ; Theta2_grad(:)];
 
 
 end
+
+
